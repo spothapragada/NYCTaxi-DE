@@ -1,2 +1,2 @@
 # NYCTaxi-DE
-Practicing building Data Pipelines using the NYC Tax Data : DE ZoomCamp2024 
+Practicing building Data Pipelines using the NYC Tax Data : DE ZoomCamp2024
