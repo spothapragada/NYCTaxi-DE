@@ -1,6 +1,7 @@
 # Commands used during the workshop
 
-## Module 1 : Docker, postgres
+## Module 1 
+### : Docker, postgres
 
  - Docker command to spin up a postgres container
 ```bash
@@ -43,3 +44,44 @@ gzip -dc yellow_tripdata_2021-01.csv.gz | head -n 10
 
  - Create a table in postgres
 ```sql
+
+### Connecting to the Postgres database using pgAdmin
+
+Lets looks at some of the data elements in the table
+
+```sql
+SELECT * FROM yellow_tripdata_2021_01 LIMIT 10;
+```
+
+Lets see the earliest and latest pickup times for the uploaded data
+
+```sql
+SELECT 
+  min(tpep_pickup_datetime) as earliest_pickup_time, 
+  max(tpep_pickup_datetime) as latest_pickup_time
+FROM yellow_taxi_data;
+```
+
+```
+| earliest_pickup_time | latest_pickup_time  |
+|----------------------|---------------------|
+| 2008-12-31 23:05:14  | 2021-02-22 16:52:16 |
+```
+
+Looks like we have data from last day of 2008 to 2021. Whats the maximum fare amount given? (Ans: 7661.28)
+
+```sql
+SELECT max(total_amount) as max_fare_amount FROM yellow_taxi_data;
+```
+Since, it might become inconvenient to query the database using `pgcli` every time. Lets obtain a GUI based tool called pgAdmin to connect to the database. Let's find a docker image that comes with this pre-installed. This will also show us how to have docker images with difference applcations interact with each other. We can get this from Docker Hub(the download website for pgAdmin will point here)
+
+Link to the docker image: https://hub.docker.com/r/dpage/pgadmin4
+
+Lets construct the `docker run` command to spin up the pgAdmin container. What we did with the port forwarding parameter is that we are mapping the port 8080 of the container to the port 8080 of the host machine.
+```bash
+docker run -it \
+  -e PGADMIN_DEFAULT_EMAIL="root@admin.com" \
+  -e PGADMIN_DEFAULT_PASSWORD="root"  \
+  -p 8080:8080 \
+dpage/pgadmin4
+```
