@@ -6,14 +6,14 @@
  - Docker command to spin up a postgres container
 ```bash
 docker run -it \
-  --name ny_taxi_postgres_container \
   -e POSTGRES_USER="root" \
   -e POSTGRES_PASSWORD="root" \
   -e POSTGRES_DB="ny_taxi" \
-  -v $(pwd)/ny_taxi_postgres_data:/var/lib/postgresql/data \
+  -v "$(pwd)"/ny_taxi_postgres_data:/var/lib/postgresql/data \
   -p 5432:5432 \
   -d postgres:13
 ```
+
 
 
  - Changing permissions of the mounted volume
@@ -80,8 +80,56 @@ Link to the docker image: https://hub.docker.com/r/dpage/pgadmin4
 Lets construct the `docker run` command to spin up the pgAdmin container. What we did with the port forwarding parameter is that we are mapping the port 8080 of the container to the port 8080 of the host machine.
 ```bash
 docker run -it \
-  -e PGADMIN_DEFAULT_EMAIL="root@admin.com" \
+  -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
   -e PGADMIN_DEFAULT_PASSWORD="root"  \
-  -p 8080:8080 \
+  -p 8080:80 \
 dpage/pgadmin4
 ```
+
+Now locally we can navigate to [http://localhost:8080](http://localhost:8080) and login with the credentials we provided. We can now add a new server and connect to the postgres container. You will notice that entering the connection details of the postgres instance we just created will not be accepted into pgAdmin. This is because `pgAdmin` and `postgres` are running in different containers and they are not able to communicate with each other. We need to create a network and attach both the containers to the network. 
+
+We can do this by running the command below. This will create a network called `my_network` and attach both the containers to it. 
+
+First stop both containers. the lets create the network, naming it `pg-network`.
+
+```bash
+docker network create pg_network
+```
+
+Now we must restart the containers and attach them to the network. We can begin with the postgres container, with some additional parameters. This will be the name of the network we just created (`pg_network`) and a name for the postgres container so it may be easily identified by the pgAdmin container (lets call it `pg-database`).
+
+```bash
+docker run -it \ 
+  -e POSTGRES_USER="root" \
+  -e POSTGRES_PASSWORD="root" \
+  -e POSTGRES_DB="ny_taxi" \
+  -v "$(pwd)"/ny_taxi_postgres_data:/var/lib/postgresql/data \
+  -p 5432:5432 \
+  --network=pg_network \
+  --name pg-database \
+-d postgres:13
+```
+
+Now lets create the pgAdmin container and specify the network and the name of the postgres container. 
+
+```bash
+docker run -it \
+  -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
+  -e PGADMIN_DEFAULT_PASSWORD="root"  \
+  -p 8080:80 \
+  --network=pg_network \
+  --name pg-admin \
+dpage/pgadmin4
+```
+
+When in pgAdmin, create a new server (call it 'Postgres DB Docker Localhost' or something to indicate it points to the postgres Docker container) and enter the following  on the _"Connection"_ tab:
+
+```
+Host: pg-database
+Port: 5432
+Username: root
+Password: root
+```
+
+The schemas and the tables will then populate the GUI and you will be able to query the database among other functionality.
+
