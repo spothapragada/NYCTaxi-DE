@@ -133,3 +133,38 @@ Password: root
 
 The schemas and the tables will then populate the GUI and you will be able to query the database among other functionality.
 
+
+### Dockerizing the Ingestion Script
+
+Lets convert the `/notebooks/ingestion_test.ipynb` into a python script and dockerize it. If the `jupyter nbconvert` command is not available, you can install it using `conda install -c conda-forge jupyter_contrib_nbextensions`.
+
+```bash
+jupyter nbconvert --to script notebooks/ingestion_test.ipynb
+```
+
+This will create a file called `ingestion_test.py` in the `notebooks` folder. We can now create a `Dockerfile` in the root of the project and add the following lines to it. Clean this file a little bit to remove artifacts of jupyter as well any code that is pertinent to notebook behavior. Also parameterize the script using the `argparse` library. 
+
+Drop the table `yellow_taxi_data` if it exists. 
+
+```sql
+DROP TABLE IF EXISTS yellow_taxi_data;
+```
+
+Now we can run the script using the following command. 
+
+```bash
+URL="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz"
+
+python ingestion_test.py \
+  --data_url=${URL} \
+  --table_name=yellow_taxi_data \
+  --database=ny_taxi \
+  --user=root \
+  --password=root \
+  --host=localhost \
+  --port=5432
+```
+
+```Dockerfile
+
+```Dockerfile
