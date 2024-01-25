@@ -164,7 +164,3 @@ python ingestion_test.py \
   --host=localhost \
   --port=5432
 ```
-
-```Dockerfile
-
-```Dockerfile
